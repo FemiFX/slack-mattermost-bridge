@@ -1,0 +1,13 @@
+# Only requirements.txt and mmbridge/ are copied into the image, but everything
+# not listed here is still sent to the Docker daemon as build context. Keep
+# secrets and local state out of it entirely.
+.env*
+!.env.mmbridge.example
+**/*.sqlite3*
+**/__pycache__
+**/*.pyc
+.venv/
+.git/
+.pytest_cache/
+tests/
+assets/

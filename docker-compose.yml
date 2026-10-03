@@ -1,0 +1,36 @@
+# Single replica by design: Slack Socket Mode and the Mattermost WebSocket each
+# deliver an event once per connection, so a second replica would mirror every
+# message twice.
+services:
+  mmbridge:
+    build: .
+    image: mmbridge:latest
+    env_file: [.env.mmbridge]
+    environment:
+      # Always the volume, whatever .env.mmbridge says: a local-run value like
+      # MMBRIDGE_DB=mmbridge.sqlite3 would otherwise put the database inside
+      # the container, where it is lost on every recreate -- and with token
+      # rotation on, the database holds the only working Slack token.
+      MMBRIDGE_DB: /data/mmbridge.sqlite3
+    volumes:
+      - mmbridge-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sqlite3,os; sqlite3.connect(os.environ['MMBRIDGE_DB']).close()"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      # No restart_policy here on purpose: under plain `docker compose` it
+      # overrides `restart:` above, and condition "any" becomes "always" --
+      # which restarts a deliberately stopped bridge at the next reboot. With
+      # a single-use refresh token, an instance coming back unasked is the
+      # one thing to avoid.
+      replicas: 1
+      update_config:
+        parallelism: 1
+        order: stop-first
+
+volumes:
+  mmbridge-data:

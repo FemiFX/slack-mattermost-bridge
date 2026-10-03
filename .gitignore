@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.env.mmbridge
+*.sqlite3*
+.pytest_cache/
+.env.mmbridge.bak

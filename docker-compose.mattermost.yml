@@ -1,0 +1,29 @@
+# A throwaway local Mattermost, for trying the bridge without a server of your
+# own. Not for production: the preview image bundles its own database inside
+# the container, so `docker compose down` resets it.
+#
+#   scripts/local-mattermost.sh     # start it and create the accounts
+#   docker compose -f docker-compose.yml -f docker-compose.mattermost.yml up -d --build
+services:
+  mattermost:
+    image: mattermost/mattermost-preview:11.11.1
+    # The only architecture Mattermost publishes; Docker emulates it on ARM.
+    platform: linux/amd64
+    ports:
+      - "${MATTERMOST_PORT:-8065}:8065"
+    environment:
+      MM_SERVICESETTINGS_SITEURL: http://localhost:${MATTERMOST_PORT:-8065}
+      # Lets scripts/local-mattermost.sh run mmctl inside the container
+      # without an admin login.
+      MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+      # The three settings the bridge needs; see SETUP.md.
+      MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS: "true"
+      MM_SERVICESETTINGS_ENABLEPOSTUSERNAMEOVERRIDE: "true"
+      MM_SERVICESETTINGS_ENABLEPOSTICONOVERRIDE: "true"
+
+  mmbridge:
+    depends_on: [mattermost]
+    environment:
+      # Inside the Compose network; .env.mmbridge keeps localhost for running
+      # the bridge directly on the host.
+      MATTERMOST_URL: http://mattermost:8065

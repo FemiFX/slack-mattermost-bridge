@@ -1,0 +1,52 @@
+# Slack app manifest for the Mattermost bridge.
+display_information:
+  name: Mattermost Bridge
+  description: Mirrors messages between this channel and a Mattermost channel.
+  long_description: >-
+    Connects one Slack channel to one Mattermost channel so both organisations
+    can work in what feels like a single room. Messages, threads, files, edits,
+    deletes and reactions are mirrored in both directions. The app only reads
+    and writes in the channels it has been explicitly invited to, and every
+    bridged message is labelled with the platform it came from.
+  background_color: "#1e3a5f"
+
+features:
+  bot_user:
+    display_name: Mattermost Bridge
+    always_online: true
+
+oauth_config:
+  scopes:
+    bot:
+      # Read and write in the bridged channel.
+      - channels:history      # public channels
+      - channels:read
+      - groups:history        # private channels
+      - groups:read
+      - chat:write
+      - chat:write.customize  # post under each author's own name and avatar
+      # Resolve who wrote what.
+      - users:read
+      - users:read.email      # match Slack and Mattermost accounts for @mentions
+      # Move attachments across.
+      - files:read
+      - files:write
+      # Mirror reactions.
+      - reactions:read
+      - reactions:write
+      - channels:manage       # leave public channels
+      - groups:write          # leave private channels
+
+settings:
+  event_subscriptions:
+    bot_events:
+      - message.channels
+      - message.groups
+      - reaction_added
+      - reaction_removed
+      - member_joined_channel   # notice being invited somewhere unauthorised
+  # Socket Mode: the bridge dials out to Slack, so no public HTTPS endpoint is
+  # needed and the service can sit behind a firewall next to Mattermost.
+  socket_mode_enabled: true
+  org_deploy_enabled: false
+  token_rotation_enabled: false

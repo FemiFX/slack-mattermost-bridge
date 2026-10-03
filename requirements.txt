@@ -1,0 +1,4 @@
+slack_sdk>=3.27.0
+requests>=2.31.0
+websocket-client>=1.7.0
+cryptography>=42.0.0
